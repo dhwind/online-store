@@ -1,0 +1,15 @@
+<header>
+    <a href="/"><img src="/images/logo.png" alt="logo" /></a>
+    <ul>
+        <% if (categories.length> 0) { %> 
+            <% categories.forEach((c, i, arr) => { %>
+                <li>
+                    <a class="category" href="/categories/<%= c.id %>"><%= c.name %></a>
+                    <% if (i < arr.length - 1) { %>
+                        <div class="separator"></div>
+                    <% } %>
+                </li>
+            <% }); %>
+        <% } %>
+    </ul>
+</header>

@@ -1,0 +1,35 @@
+@import 'colors';
+@import 'main';
+@import 'mobile';
+
+body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    line-height: 1;
+    vertical-align: baseline;
+    background-color: $main-background;
+
+    p {
+        margin: 0;
+        padding: 0;
+    }
+
+    ol,
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    input {
+        outline: none;
+    }
+}

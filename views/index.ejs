@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= title %></title>
+        <link rel="stylesheet" href="/stylesheets/index.min.css" />
+    </head>
+    <body>
+        <%- include('header', { categories }); -%>
+        <main>
+            <div class="banner">
+                <% if (!!banner) { %>
+                <img src="/images/<%= banner %>" />
+                <% } %>
+                <div class="title"><%= title %></div>
+            </div>
+            <div class="content">
+                <div class="filters"></div>
+                <div class="wrapper">
+                    <div class="products"></div>
+                </div>
+            </div>
+        </main>
+        <%- include('footer'); -%>
+        <script type="text/javascript">
+            const filtersWrapper = document.querySelector('.filters');
+            const productsWrapper = document.querySelector('.products');
+
+            const productsData = <%- JSON.stringify(products) %>;
+
+            function loadProducts(filters) {
+                productsWrapper.innerHTML = '';
+                const checkedAttributes =
+                    productsData.sort((a, b) => a.name < b.name ? -1 : 1)
+                    .filter(p => {
+                        if(!filters) {
+                            return p;
+                        }
+
+                        const isMatchArr = [];
+
+                        filters.forEach(filter => {
+                            isMatchArr.push(!!p.variants.find(v => filter.checkboxes.find(c => c.id === v.variation_values[filter.name])));
+                        });
+
+                        return !isMatchArr.includes(false);
+                    })
+                    .forEach(p => {
+                        const el = document.createElement('div');
+                        el.classList.add('item');
+                        el.innerHTML = `
+                                        <img src="/images/${p.image_groups.filter(g => g.view_type === 'medium')[0].images[0].link}" />
+                                        <p>${p.name}</p>
+                                        <p>
+                                            $${!!p.price_max ? `<strike>${p.price_max}</strike> ${p.price}` : `${p.price}`}
+                                        </p>
+                                    `;
+                        productsWrapper.appendChild(el);
+                    });
+            }
+
+            function addFilter(name) {
+                const attributesData = productsData.filter(p => p.variation_attributes.find(vA => vA.id === name))
+                                            .map(p => p.variation_attributes.find(vA => vA.id === name).values);
+
+                const parsedAttributes = !!attributesData.length ? attributesData.reduce((prev, current) => {
+                                                return prev.concat(current)
+                                            })
+                                            .filter((v, i, a) => a.findIndex(t => (t.value === v.value)) === i) : [];
+
+                const filter = document.createElement('div');
+                filter.classList.add('filter');
+
+                if(!!parsedAttributes.length) {
+                    filter.innerHTML = `<div class="main-field">
+                                        ${name[0].toUpperCase() + name.slice(1)}
+                                        <div class="arrow"></div>
+                                      </div>
+                                      <div class="values">
+                                        ${parsedAttributes.map(a => {
+                                            return `<div class="item">
+                                                        <input type="checkbox" id="${a.value}" name="${a.value}" />
+                                                        <label for="${a.value}">${a.value}</label>
+                                                    </div>
+                                                    `;
+                                            }).join('')
+                                        }
+                                      </div>
+                                    `;
+
+                    filtersWrapper.appendChild(filter);
+                }
+            }
+
+            loadProducts();
+            addFilter('color');
+            addFilter('size');
+            addFilter('width');
+
+            const filtersData = [];
+            filtersWrapper.querySelectorAll('.filter').forEach(f => {
+                let checkboxData = [];
+                const filterData = {
+                    name: f.querySelector('.main-field').textContent.trim().toLowerCase()
+                }
+                const filterCheckBoxes = f.querySelectorAll('input[type="checkbox"]');
+                filterCheckBoxes.forEach((c, i) => {
+                    c.addEventListener('change', (e) => {
+                        if(c.checked) {
+                            checkboxData.push({ id: c.name });
+                        } else {
+                            checkboxData = checkboxData.filter(item => item.id !== c.name);
+                        }
+
+                        filterData.checkboxes = checkboxData;
+
+                        if(!filtersData.find(filter => filter.name === filterData.name)) {
+                            filtersData.push(filterData);
+                        }
+
+                        loadProducts(filtersData.filter(filter => !!filter.checkboxes.length));
+                    });
+                });
+            });
+
+            const mainFields = document.querySelectorAll('.main-field');
+            const valuesFields = document.querySelectorAll('.values');
+            const arrows = document.querySelectorAll('.arrow');
+
+            mainFields.forEach((el, i) => {
+                el.addEventListener('click', () => {
+                    const arrowClassList = arrows[i].classList;
+                    const valuesClassList = valuesFields[i].classList;
+                    if(arrowClassList.contains('active')) {
+                        valuesClassList.remove('active');
+                        arrowClassList.remove('active');
+                        return;
+                    }
+
+                    valuesClassList.add('active');
+                    arrowClassList.add('active');
+                })
+            });
+        </script>
+    </body>
+</html>
