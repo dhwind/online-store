@@ -21,103 +21,19 @@
             </div>
         </main>
         <%- include('footer'); -%>
-        <script src="/javascripts/dropdown.js" type="module"></script>
-        <script type="text/javascript">
+        <script type="module">
+            import { loadProducts } from '/javascripts/products.js';
+            import { addFilter, filterProducts } from '/javascripts/filters.js';
             const filtersWrapper = document.querySelector('.filters');
-            const productsWrapper = document.querySelector('.products');
 
             const productsData = <%- JSON.stringify(products) %>;
 
-            function loadProducts(filters) {
-                productsWrapper.innerHTML = '';
-                productsData.sort((a, b) => a.name < b.name ? -1 : 1)
-                .filter(p => {
-                    if(!filters) {
-                        return p;
-                    }
-                    const isMatchArr = [];
-                    filters.forEach(filter => {
-                        isMatchArr.push(!!p.variants.find(v => filter.checkboxes.find(c => c.id === v.variation_values[filter.name])));
-                    });
-                    return !isMatchArr.includes(false);
-                })
-                .forEach(p => {
-                    const el = document.createElement('div');
-                    el.classList.add('item');
-                    el.innerHTML = `
-                                    <img src="/images/${p.image_groups.filter(g => g.view_type === 'medium')[0].images[0].link}" />
-                                    <p>${p.name}</p>
-                                    <p>
-                                        $${!!p.price_max ? `<strike>${p.price_max}</strike> ${p.price}` : `${p.price}`}
-                                    </p>
-                                `;
-                    productsWrapper.appendChild(el);
-                });
-            }
-
-            function addFilter(name) {
-                const attributesData = productsData.filter(p => p.variation_attributes.find(vA => vA.id === name))
-                                            .map(p => p.variation_attributes.find(vA => vA.id === name).values);
-
-                const parsedAttributes = !!attributesData.length ? attributesData.reduce((prev, current) => {
-                                                return prev.concat(current)
-                                            })
-                                            .filter((v, i, a) => a.findIndex(t => (t.value === v.value)) === i) : [];
-
-                const filter = document.createElement('div');
-                filter.classList.add('filter');
-
-                if(!!parsedAttributes.length) {
-                    filter.innerHTML = `<div class="main-field">
-                                        ${name[0].toUpperCase() + name.slice(1)}
-                                        <div class="arrow"></div>
-                                      </div>
-                                      <div class="values">
-                                        ${parsedAttributes.map(a => {
-                                            return `<div class="item">
-                                                        <input type="checkbox" id="${a.value}" name="${a.value}" />
-                                                        <label for="${a.value}">${a.value}</label>
-                                                    </div>
-                                                    `;
-                                            }).join('')
-                                        }
-                                      </div>
-                                    `;
-
-                    filtersWrapper.appendChild(filter);
-                }
-            }
-
-            loadProducts();
-            addFilter('color');
-            addFilter('size');
-            addFilter('width');
-
-            const filtersData = [];
-            filtersWrapper.querySelectorAll('.filter').forEach(f => {
-                let checkboxData = [];
-                const filterData = {
-                    name: f.querySelector('.main-field').textContent.trim().toLowerCase()
-                }
-                const filterCheckBoxes = f.querySelectorAll('input[type="checkbox"]');
-                filterCheckBoxes.forEach((c, i) => {
-                    c.addEventListener('change', (e) => {
-                        if(c.checked) {
-                            checkboxData.push({ id: c.name });
-                        } else {
-                            checkboxData = checkboxData.filter(item => item.id !== c.name);
-                        }
-
-                        filterData.checkboxes = checkboxData;
-
-                        if(!filtersData.find(filter => filter.name === filterData.name)) {
-                            filtersData.push(filterData);
-                        }
-
-                        loadProducts(filtersData.filter(filter => !!filter.checkboxes.length));
-                    });
-                });
-            });
+            loadProducts(productsData);
+            addFilter(productsData, 'color');
+            addFilter(productsData, 'size');
+            addFilter(productsData, 'width');
+            filterProducts(productsData);
         </script>
+        <script src="/javascripts/dropdown.js" type="module"></script>
     </body>
 </html>
