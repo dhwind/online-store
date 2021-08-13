@@ -21,6 +21,7 @@
             </div>
         </main>
         <%- include('footer'); -%>
+        <script src="/javascripts/dropdown.js" type="module"></script>
         <script type="text/javascript">
             const filtersWrapper = document.querySelector('.filters');
             const productsWrapper = document.querySelector('.products');
@@ -29,33 +30,29 @@
 
             function loadProducts(filters) {
                 productsWrapper.innerHTML = '';
-                const checkedAttributes =
-                    productsData.sort((a, b) => a.name < b.name ? -1 : 1)
-                    .filter(p => {
-                        if(!filters) {
-                            return p;
-                        }
-
-                        const isMatchArr = [];
-
-                        filters.forEach(filter => {
-                            isMatchArr.push(!!p.variants.find(v => filter.checkboxes.find(c => c.id === v.variation_values[filter.name])));
-                        });
-
-                        return !isMatchArr.includes(false);
-                    })
-                    .forEach(p => {
-                        const el = document.createElement('div');
-                        el.classList.add('item');
-                        el.innerHTML = `
-                                        <img src="/images/${p.image_groups.filter(g => g.view_type === 'medium')[0].images[0].link}" />
-                                        <p>${p.name}</p>
-                                        <p>
-                                            $${!!p.price_max ? `<strike>${p.price_max}</strike> ${p.price}` : `${p.price}`}
-                                        </p>
-                                    `;
-                        productsWrapper.appendChild(el);
+                productsData.sort((a, b) => a.name < b.name ? -1 : 1)
+                .filter(p => {
+                    if(!filters) {
+                        return p;
+                    }
+                    const isMatchArr = [];
+                    filters.forEach(filter => {
+                        isMatchArr.push(!!p.variants.find(v => filter.checkboxes.find(c => c.id === v.variation_values[filter.name])));
                     });
+                    return !isMatchArr.includes(false);
+                })
+                .forEach(p => {
+                    const el = document.createElement('div');
+                    el.classList.add('item');
+                    el.innerHTML = `
+                                    <img src="/images/${p.image_groups.filter(g => g.view_type === 'medium')[0].images[0].link}" />
+                                    <p>${p.name}</p>
+                                    <p>
+                                        $${!!p.price_max ? `<strike>${p.price_max}</strike> ${p.price}` : `${p.price}`}
+                                    </p>
+                                `;
+                    productsWrapper.appendChild(el);
+                });
             }
 
             function addFilter(name) {
@@ -120,25 +117,6 @@
                         loadProducts(filtersData.filter(filter => !!filter.checkboxes.length));
                     });
                 });
-            });
-
-            const mainFields = document.querySelectorAll('.main-field');
-            const valuesFields = document.querySelectorAll('.values');
-            const arrows = document.querySelectorAll('.arrow');
-
-            mainFields.forEach((el, i) => {
-                el.addEventListener('click', () => {
-                    const arrowClassList = arrows[i].classList;
-                    const valuesClassList = valuesFields[i].classList;
-                    if(arrowClassList.contains('active')) {
-                        valuesClassList.remove('active');
-                        arrowClassList.remove('active');
-                        return;
-                    }
-
-                    valuesClassList.add('active');
-                    arrowClassList.add('active');
-                })
             });
         </script>
     </body>
